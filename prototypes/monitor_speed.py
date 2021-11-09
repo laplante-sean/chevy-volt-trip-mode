@@ -1,3 +1,4 @@
+import sys
 import struct
 
 from panda import Panda
@@ -16,7 +17,8 @@ def read_vehicle_speed(p: Panda) -> None:
             CURRENT_SPEED = struct.unpack("!H", dat[:2])[0] / 100.0
 
         # Just keep updating the same line
-        print(f"\rSpeed: {int(CURRENT_SPEED):03d}", end="")
+        sys.stdout.write(f"\rSpeed: {int(CURRENT_SPEED):03d}")
+        sys.stdout.flush()
 
 
 def main() -> None:
