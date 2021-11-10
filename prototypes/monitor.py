@@ -22,6 +22,7 @@ def read_vehicle_speed(p: Panda) -> None:
         elif addr == 0x1e1:  # ASCMSteeringButton
             # Check if the 7th bit of byte 4 is a 1
             if int(dat[4]) >> 7 & 1:
+                print(f"Data (1): {dat}")
                 BUTTON = 1
             elif BUTTON == 1:
                 # Increment the press count on button release
