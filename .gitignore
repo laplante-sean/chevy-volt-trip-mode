@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Custom
+deploy.bat
+connect.bat
+
 # C extensions
 *.so
 
