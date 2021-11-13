@@ -126,13 +126,16 @@ def main() -> None:
         [sg.Button('ON'), sg.Button('OFF')]
     ]
 
-    # Create the Window
-    window = sg.Window('Trip Mode', layout)
+    # Create the Window (800x480 is Raspberry Pi touchscreen resolution)
+    window = sg.Window(
+        'Trip Mode', layout, finalize=True,
+        keep_on_top=True, no_titlebar=True,
+        location=(0, 0), size=(800, 480))
     window.maximize()  # Make it fullscreen
 
     # Event Loop to process "events" and get the "values" of the inputs
     while True:
-        event, _values = window.read()
+        event, _values = window.read(timeout=0)  # Return immediately
         if event == sg.WIN_CLOSED:
             if car_state:
                 car_state.close()
