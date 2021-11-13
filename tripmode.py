@@ -3,9 +3,11 @@ import sys
 import time
 import struct
 import logging
+import threading
 from typing import List, Union
 
 from panda import Panda
+import PySimpleGUI as sg
 
 # Setup basic logging
 logging.basicConfig(handlers=[
@@ -29,7 +31,7 @@ class CarState:
     #: Mode button press message
     PRESS_MSG = bytearray(b'\x00\x00\x00\x00\x80\x00\x00')
 
-    def __init__(self, p: Panda, debug: bool = False):
+    def __init__(self, p: Panda):
         """Set up the car state."""
         self.speed_threshold = 50
         self.speed = 0
@@ -38,10 +40,9 @@ class CarState:
         self.allow_button_press_after = 0
         self.mode = "NORMAL"
         self.pending_sends: List[List[List[Union[bytearray, int, None]]]] = []
-        self.debug = debug
-        if self.debug:
-            self.MODE_SWITCH_COOLDOWN = 30.0
-            self.allow_mode_switch_after = time.perf_counter()
+
+    def __del__(self):
+        self.close()
 
     def _switch_modes(self, new_mode: str) -> None:
         """Send the messages needed to switch modes if past our cooldown."""
@@ -67,13 +68,6 @@ class CarState:
 
     def _set_speed(self, speed):
         """Set the current speed and trigger mode changes."""
-        if self.debug:
-            if self.mode == "HOLD":
-                self._switch_modes("NORMAL")
-            elif self.mode == "NORMAL":
-                self._switch_modes("HOLD")
-            return
-
         speed = int(speed)
         if self.speed > self.speed_threshold and speed < 1:
             # HACK: Speed jumps to 0 b/w valid values.
@@ -102,9 +96,12 @@ class CarState:
                 send = self.pending_sends.pop(0)
                 self.panda.can_send_many(send)
 
+    def close(self):
+        self.panda.close()
 
-def main() -> None:
-    """Entry Point. Monitor Chevy volt speed."""
+
+def enable() -> CarState:
+    """Enable trip mode."""
     try:
         p = Panda()
         p.set_safety_mode(Panda.SAFETY_ALLOUTPUT)  # Turn off all safety preventing sends
@@ -114,15 +111,44 @@ def main() -> None:
         logging.error(f"Failed to connect to Panda! {exc}")
         return
 
-    s = CarState(p)
+    return CarState(p)
 
-    try:
-        while True:
-            s.update()
-    except KeyboardInterrupt:
-        logging.info("Exiting...")
-    finally:
-        p.close()
+
+def main() -> None:
+    """Entry Point. Monitor Chevy volt speed."""
+    trip_mode_enabled = False
+    car_state = None
+
+    # Theme and layout for the window
+    sg.theme('DarkAmber')
+    layout = [
+        [sg.Text('TRIP MODE')],
+        [sg.Button('ON'), sg.Button('OFF')]
+    ]
+
+    # Create the Window
+    window = sg.Window('Trip Mode', layout)
+
+    # Event Loop to process "events" and get the "values" of the inputs
+    while True:
+        event, values = window.read()
+        if event == sg.WIN_CLOSED:
+            if car_state:
+                car_state.close()
+            break
+
+        if event == "ON" and not trip_mode_enabled:
+            trip_mode_enabled = True
+            car_state = enable()
+        elif event == "OFF" and trip_mode_enabled:
+            trip_mode_enabled = False
+            car_state.close()
+            car_state = None
+
+        if car_state:
+            car_state.update()
+
+    window.close()
 
 
 if __name__ == "__main__":
