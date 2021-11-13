@@ -128,10 +128,11 @@ def main() -> None:
 
     # Create the Window
     window = sg.Window('Trip Mode', layout)
+    window.maximize()  # Make it fullscreen
 
     # Event Loop to process "events" and get the "values" of the inputs
     while True:
-        event, values = window.read()
+        event, _values = window.read()
         if event == sg.WIN_CLOSED:
             if car_state:
                 car_state.close()
