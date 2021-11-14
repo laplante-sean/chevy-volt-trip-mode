@@ -17,7 +17,7 @@ class CarState:
     #: Cooldown for mode switching
     MODE_SWITCH_COOLDOWN = 60.0
     #: Don't press the button too fast
-    BUTTON_PRESS_COOLDOWN = 0.5
+    BUTTON_PRESS_COOLDOWN = 0.75
     #: Available drive modes in order
     DRIVE_MODES = ["NORMAL", "SPORT", "MOUNTAIN", "HOLD"]
     #: Message ID for the drive mode button
@@ -149,6 +149,7 @@ def main() -> None:
 
     # Event Loop to process "events" and get the "values" of the inputs
     while True:
+        check = time.perf_counter()
         event, _values = window.read(timeout=0)  # Return immediately
         if event == sg.WIN_CLOSED or event == "Exit":
             print("Exiting...")
@@ -173,6 +174,9 @@ def main() -> None:
                 window['/\\'].update(disabled=False)
                 window['\\/'].update(disabled=False)
                 print("Trip mode enabled!")
+            else:
+                print("Failed to enable trip mode!")
+                window['ON'].update(disabled=False)
 
         if event == "OFF" and trip_mode_enabled:
             trip_mode_enabled = False
