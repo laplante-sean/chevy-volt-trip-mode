@@ -12,9 +12,23 @@ _Tested with Python 3.8 64-bit on Raspbian on a Raspberry Pi 4B, connected to a 
 1. Install the dependencies: `pip install -r requirements.txt`
 1. Run the app: `python tripmode.py`
 
+## Auto-Start
+
+1. Create the file `/etc/xdg/autostart/tripmode.desktop`
+2. Add the contents:
+
+  ```
+  [Desktop Entry]
+  
+  Name=ChevyVoltTripMode
+  
+  Exec=/usr/bin/python /home/pi/tripmode.py
+  ```
+
+3. Reboot
+
 # TODO
 
-1. Configure it to start at boot
 1. Create a safety model for the Panda that only allows what we need to be sent on the CAN bus
 1. GUI improvements: Bigger buttons, center the GUI
 1. `setup.py` and wheel distributions maybe
